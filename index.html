@@ -4,96 +4,138 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain Raffle – Final Styled</title>
+  <title>ApeChain Raffle – Complete</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
+      font-family: sans-serif;
+      background: #f3f4f6;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       padding: 2rem;
       min-height: 100vh;
     }
     .card {
       background: white;
-      border-radius: 12px;
       padding: 2rem;
+      border-radius: 1rem;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      max-width: 600px;
+      max-width: 500px;
       width: 100%;
       text-align: center;
+      margin-bottom: 2rem;
     }
     h1 {
-      margin-bottom: 1.5rem;
-    }
-    #status {
-      margin-top: 1rem;
-      font-weight: bold;
+      margin-bottom: 1rem;
     }
     button {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      border: none;
       background: #2563eb;
       color: white;
-      border-radius: 6px;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      margin-top: 1rem;
       cursor: pointer;
     }
     button:hover {
       background: #1d4ed8;
     }
+    .thank-you {
+      margin-top: 1rem;
+      color: green;
+      font-weight: bold;
+    }
+    .leaderboard {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+    .leaderboard h3 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .leaderboard ul {
+      list-style: none;
+      padding: 0;
+    }
+    .leaderboard li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
+  <h1>🎟️ ApeChain NFT Raffle</h1>
+
   <div class="card">
-    <h1>ApeChain NFT Raffle</h1>
     <p id="wallet">Wallet: Not connected</p>
     <p id="chain">Chain ID: -</p>
-    <p id="status" style="color:green;"></p>
+    <p id="nftCount">Your NFTs: -</p>
+    <p id="tickets">🎫 Tickets Available: -</p>
     <button onclick="connectWallet()">Connect Wallet</button>
+    <button id="raffleBtn" onclick="enterRaffle()" style="display:none;">Enter the Raffle</button>
+    <p id="thankYou" class="thank-you" style="display:none;">🎉 Thank you! You're entered into the raffle.</p>
+  </div>
+
+  <div class="leaderboard">
+    <h3>🏆 Leaderboard</h3>
+    <ul id="leaderboardList">
+      <li>Loading...</li>
+    </ul>
   </div>
 
   <script>
     let web3;
     let userAddress;
+    const CONTRACT_ADDRESS = "0xBBB854C6d7faf527B5EE08389e2FB38469c29F63";
 
     async function connectWallet() {
       if (window.ethereum) {
         web3 = new Web3(window.ethereum);
         try {
-          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           userAddress = accounts[0];
-          document.getElementById("wallet").innerText = "Wallet: " + userAddress;
+          document.getElementById("wallet").innerText = "Wallet: " + userAddress.slice(0,6) + "..." + userAddress.slice(-4);
 
           const chainId = await web3.eth.getChainId();
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
           console.log("Detected chainId:", chainId);
 
           if (String(chainId) !== "33139") {
-            document.getElementById("status").innerText = "⚠️ You're not on ApeChain. Requesting to switch...";
+            alert("Please switch to ApeChain (Chain ID: 33139)");
             try {
               await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
                 params: [{
-                  chainId: '0x8163', // 33139 in hex
+                  chainId: '0x8163',
                   chainName: 'Ape Chain',
                   nativeCurrency: { name: 'APE', symbol: 'APE', decimals: 18 },
                   rpcUrls: ['https://rpc.apechain.com/http'],
                   blockExplorerUrls: ['https://apescan.io']
                 }]
               });
-              document.getElementById("status").innerText = "✅ ApeChain added. Please switch to it.";
             } catch (addErr) {
-              document.getElementById("status").innerText = "❌ Could not add ApeChain.";
-              console.error(addErr);
+              console.error("Could not add ApeChain:", addErr);
+              return;
             }
-          } else {
-            document.getElementById("status").innerText = "✅ You are on ApeChain!";
           }
+
+          const abi = [{"constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
+          const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+          const balance = await contract.methods.balanceOf(userAddress).call();
+          document.getElementById("nftCount").innerText = "Your NFTs: " + balance;
+          const tickets = Math.floor(balance / 3);
+          document.getElementById("tickets").innerText = "🎫 Tickets Available: " + tickets;
+
+          if (tickets > 0) {
+            document.getElementById("raffleBtn").style.display = "inline-block";
+          }
+
         } catch (err) {
           alert("Connection failed.");
           console.error(err);
@@ -102,6 +144,26 @@
         alert("MetaMask is not installed.");
       }
     }
+
+    function enterRaffle() {
+      document.getElementById("thankYou").style.display = "block";
+      loadLeaderboard(); // simulate refresh
+    }
+
+    function loadLeaderboard() {
+      const sample = [
+        { wallet: "0xAbc...1234", tickets: 12 },
+        { wallet: "0xDef...5678", tickets: 9 },
+        { wallet: "0x" + userAddress.slice(0,4) + "..." + userAddress.slice(-4), tickets: Math.floor(Math.random()*10)+1 }
+      ];
+      const list = document.getElementById("leaderboardList");
+      list.innerHTML = "";
+      sample.forEach((entry, i) => {
+        list.innerHTML += `<li>#${i+1} ${entry.wallet} - 🎫 ${entry.tickets}</li>`;
+      });
+    }
+
+    loadLeaderboard();
   </script>
 </body>
 </html>
