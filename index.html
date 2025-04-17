@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain Raffle – Complete</title>
+  <title>ApeChain Raffle – Google Sheet Connected</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
@@ -47,32 +47,11 @@
       color: green;
       font-weight: bold;
     }
-    .leaderboard {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      padding: 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-    }
-    .leaderboard h3 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .leaderboard ul {
-      list-style: none;
-      padding: 0;
-    }
-    .leaderboard li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #eee;
-    }
   </style>
 </head>
 <body>
-  <h1>🎟️ ApeChain NFT Raffle</h1>
-
   <div class="card">
+    <h1>ApeChain NFT Raffle</h1>
     <p id="wallet">Wallet: Not connected</p>
     <p id="chain">Chain ID: -</p>
     <p id="nftCount">Your NFTs: -</p>
@@ -82,17 +61,9 @@
     <p id="thankYou" class="thank-you" style="display:none;">🎉 Thank you! You're entered into the raffle.</p>
   </div>
 
-  <div class="leaderboard">
-    <h3>🏆 Leaderboard</h3>
-    <ul id="leaderboardList">
-      <li>Loading...</li>
-    </ul>
-  </div>
-
   <script>
     let web3;
     let userAddress;
-    const CONTRACT_ADDRESS = "0xBBB854C6d7faf527B5EE08389e2FB38469c29F63";
 
     async function connectWallet() {
       if (window.ethereum) {
@@ -104,29 +75,13 @@
 
           const chainId = await web3.eth.getChainId();
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
-          console.log("Detected chainId:", chainId);
-
           if (String(chainId) !== "33139") {
             alert("Please switch to ApeChain (Chain ID: 33139)");
-            try {
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: '0x8163',
-                  chainName: 'Ape Chain',
-                  nativeCurrency: { name: 'APE', symbol: 'APE', decimals: 18 },
-                  rpcUrls: ['https://rpc.apechain.com/http'],
-                  blockExplorerUrls: ['https://apescan.io']
-                }]
-              });
-            } catch (addErr) {
-              console.error("Could not add ApeChain:", addErr);
-              return;
-            }
+            return;
           }
 
           const abi = [{"constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
-          const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+          const contract = new web3.eth.Contract(abi, "0xBBB854C6d7faf527B5EE08389e2FB38469c29F63");
           const balance = await contract.methods.balanceOf(userAddress).call();
           document.getElementById("nftCount").innerText = "Your NFTs: " + balance;
           const tickets = Math.floor(balance / 3);
@@ -135,7 +90,6 @@
           if (tickets > 0) {
             document.getElementById("raffleBtn").style.display = "inline-block";
           }
-
         } catch (err) {
           alert("Connection failed.");
           console.error(err);
@@ -145,25 +99,30 @@
       }
     }
 
-    function enterRaffle() {
-      document.getElementById("thankYou").style.display = "block";
-      loadLeaderboard(); // simulate refresh
-    }
+    async function enterRaffle() {
+      const nftText = document.getElementById("nftCount").innerText;
+      const ticketsText = document.getElementById("tickets").innerText;
+      const nftCount = parseInt(nftText.split(": ")[1]);
+      const tickets = parseInt(ticketsText.split(": ")[1]);
 
-    function loadLeaderboard() {
-      const sample = [
-        { wallet: "0xAbc...1234", tickets: 12 },
-        { wallet: "0xDef...5678", tickets: 9 },
-        { wallet: "0x" + userAddress.slice(0,4) + "..." + userAddress.slice(-4), tickets: Math.floor(Math.random()*10)+1 }
-      ];
-      const list = document.getElementById("leaderboardList");
-      list.innerHTML = "";
-      sample.forEach((entry, i) => {
-        list.innerHTML += `<li>#${i+1} ${entry.wallet} - 🎫 ${entry.tickets}</li>`;
+      const response = await fetch("https://script.google.com/macros/s/AKfycbwnJ3dUOn_Tz5O1uxjScqnjy5h0SNWUB5tl9C-zq4kpif_yK-gDAeIyhKpJ72vOktfywg/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          wallet: userAddress,
+          nftCount: nftCount,
+          tickets: tickets
+        })
       });
-    }
 
-    loadLeaderboard();
+      if (response.ok) {
+        document.getElementById("thankYou").style.display = "block";
+      } else {
+        alert("Something went wrong while submitting.");
+      }
+    }
   </script>
 </body>
 </html>
