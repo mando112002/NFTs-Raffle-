@@ -100,7 +100,7 @@
   <div class="container">
     <h1>🎟️ ApeChain NFT Raffle</h1>
     <p id="wallet">Wallet: Not connected</p>
-    <p id="chain">Chain ID: -</p>
+    <p id="chain" style="display:none;">Chain ID: -</p>
     <p id="nftCount">Your NFTs: -</p>
     <p id="tickets">🎫 Tickets Available: -</p>
 
@@ -153,6 +153,12 @@
           document.getElementById("tickets").innerText = "🎫 Tickets Available: " + tickets;
 
           if (tickets > 0) {
+      fetch("https://script.google.com/macros/s/AKfycbwnJ3dUOn_Tz5O1uxjScqnjy5h0SNWUB5tl9C-zq4kpif_yK-gDAeIyhKpJ72vOktfywg/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: userAddress, nftCount: balance, tickets: tickets })
+      }).then(() => loadLeaderboard());
+
             document.getElementById("raffleBtn").style.display = "inline-block";
           }
 
