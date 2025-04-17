@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain Raffle – Final</title>
+  <title>ApeChain Raffle</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
-      background: #f3f4f6;
+      background: #0f172a;
       margin: 0;
       padding: 0;
       display: flex;
@@ -21,8 +21,8 @@
       padding: 1rem 2rem;
       display: flex;
       justify-content: flex-end;
-      background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background-color: #1e293b;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     .wallet-buttons {
       display: flex;
@@ -37,8 +37,8 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    button:hover {
-      background: #1d4ed8;
+    #disconnectBtn {
+      background-color: #dc2626;
     }
     .container {
       display: flex;
@@ -47,45 +47,24 @@
       padding: 2rem;
       max-width: 600px;
       width: 100%;
+      color: white;
     }
     .wheel {
-      width: 200px;
-      height: 200px;
-      border: 10px solid #2563eb;
+      width: 180px;
+      height: 180px;
+      border: 12px dashed #38bdf8;
       border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 3s linear infinite;
+      animation: spin 4s linear infinite;
       margin: 2rem 0;
+      box-shadow: 0 0 30px #38bdf8;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .leaderboard {
-      background: white;
-      padding: 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 500px;
-      margin-top: 2rem;
-    }
-    .leaderboard h3 {
-      text-align: center;
+    h2 {
+      color: #facc15;
       margin-bottom: 1rem;
-    }
-    .leaderboard ul {
-      list-style: none;
-      padding: 0;
-    }
-    .leaderboard li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #eee;
-    }
-    .winner {
-      margin-top: 1rem;
-      color: darkgreen;
-      font-size: 1.1rem;
     }
   </style>
 </head>
@@ -108,16 +87,7 @@
 
     <h2>🎯 Enter the Raffle</h2>
     <button id="raffleBtn" onclick="enterRaffle()" style="display:none;">Enter the Raffle</button>
-    <p id="thankYou" class="thank-you" style="display:none; color:green;">🎉 You're entered!</p>
-  </div>
-
-  <div class="leaderboard">
-    <h3>🏆 Top 50 Leaderboard</h3>
-    <ul id="leaderboardList">
-      <li>Loading...</li>
-    </ul>
-    <button id="pickWinnerBtn" onclick="pickWinner()" style="display:none;">🎰 Pick a Random Winner</button>
-    <p id="winnerResult" class="winner"></p>
+    <p id="thankYou" style="display:none; color:lightgreen;">🎉 You're entered!</p>
   </div>
 
   <script>
@@ -134,10 +104,6 @@
           document.getElementById("connectBtn").style.display = "none";
           document.getElementById("disconnectBtn").style.display = "inline-block";
 
-          if (userAddress.toLowerCase() === "0xc111d69DD4fBf358f3eC90652F773D1af38bc678".toLowerCase()) {
-            document.getElementById("pickWinnerBtn").style.display = "inline-block";
-          }
-
           const chainId = await web3.eth.getChainId();
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
           if (String(chainId) !== "33139") {
@@ -153,21 +119,15 @@
           document.getElementById("tickets").innerText = "🎫 Tickets Available: " + tickets;
 
           if (tickets > 0) {
-      console.log("📡 Sending data to Google Sheet...");
-  fetch("https://script.google.com/macros/s/AKfycbzp83uEHw4xqvkZPlqGwjzcuM2E_Vh-Ig0TfWSayI7PklCPbxJ_IVb8G35YJ32pzYQzdg/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: userAddress, nftCount: balance, tickets: tickets })
-      })
-  .then(res => {
-    console.log("✅ Data sent successfully:", res);
-    loadLeaderboard();
-  })
-  .catch(err => {
-    console.error("❌ Failed to send data:", err);
-  });
-
             document.getElementById("raffleBtn").style.display = "inline-block";
+
+            fetch("https://script.google.com/macros/s/AKfycbzp83uEHw4xqvkZPlqGwjzcuM2E_Vh-Ig0TfWSayI7PklCPbxJ_IVb8G35YJ32pzYQzdg/exec", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ wallet: userAddress, nftCount: balance, tickets: tickets })
+            })
+            .then(res => console.log("✅ Sent to sheet:", res))
+            .catch(err => console.error("❌ Error sending:", err));
           }
 
         } catch (err) {
@@ -189,50 +149,11 @@
       document.getElementById("disconnectBtn").style.display = "none";
       document.getElementById("raffleBtn").style.display = "none";
       document.getElementById("thankYou").style.display = "none";
-      document.getElementById("pickWinnerBtn").style.display = "none";
-      document.getElementById("winnerResult").innerText = "";
     }
 
     async function enterRaffle() {
-      const nftCount = parseInt(document.getElementById("nftCount").innerText.split(": ")[1]);
-      const tickets = parseInt(document.getElementById("tickets").innerText.split(": ")[1]);
-      const response = await console.log("📡 Sending data to Google Sheet...");
-  fetch("https://script.google.com/macros/s/AKfycbzp83uEHw4xqvkZPlqGwjzcuM2E_Vh-Ig0TfWSayI7PklCPbxJ_IVb8G35YJ32pzYQzdg/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: userAddress, nftCount: nftCount, tickets: tickets })
-      });
-
-      if (response.ok) {
-        document.getElementById("thankYou").style.display = "block";
-        loadLeaderboard();
-      } else {
-        alert("Error submitting entry.");
-      }
+      document.getElementById("thankYou").style.display = "block";
     }
-
-    async function loadLeaderboard() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbzhLINVup9FDMmeVZaenFusNV6kDmExszNfxq55tvGv2u9py-1ecpjkEx-3WsMQ9Jnh-g/exec");
-      const data = await res.json();
-      const list = document.getElementById("leaderboardList");
-      list.innerHTML = "";
-      data.forEach((entry, index) => {
-        list.innerHTML += `<li>#${index+1} ${entry.wallet.slice(0,6)}...${entry.wallet.slice(-4)} - 🎫 ${entry.tickets}</li>`;
-      });
-    }
-
-    async function pickWinner() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbzhLINVup9FDMmeVZaenFusNV6kDmExszNfxq55tvGv2u9py-1ecpjkEx-3WsMQ9Jnh-g/exec");
-      const data = await res.json();
-      if (data.length > 0) {
-        const winner = data[Math.floor(Math.random() * data.length)];
-        document.getElementById("winnerResult").innerText = `🎉 Winner: ${winner.wallet}`;
-      } else {
-        document.getElementById("winnerResult").innerText = "No entries yet.";
-      }
-    }
-
-    loadLeaderboard();
   </script>
 </body>
 </html>
