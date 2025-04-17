@@ -4,94 +4,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain NFT Raffle</title>
+  <title>ApeChain NFT Raffle - Debug</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f3f4f6;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 2rem;
-      margin: 0;
-    }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      max-width: 500px;
-      width: 100%;
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      margin-top: 1rem;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    .thank-you {
-      margin-top: 1rem;
-      color: green;
-      font-weight: bold;
-    }
-    .leaderboard {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      padding: 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-    }
-    .leaderboard h3 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .leaderboard ul {
-      list-style: none;
-      padding: 0;
-    }
-    .leaderboard li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #eee;
-    }
-  </style>
 </head>
 <body>
-  <h1>🎟️ ApeChain NFT Raffle</h1>
-
-  <div class="card">
-    <p id="wallet">Wallet: Not connected</p>
-    <p id="nftCount">Your NFTs: -</p>
-    <p id="tickets">🎫 Tickets Available: -</p>
-    <button onclick="connectWallet()">Connect Wallet</button>
-    <button id="raffleBtn" onclick="enterRaffle()" style="display:none;">Enter the Raffle</button>
-    <p id="thankYou" class="thank-you" style="display:none;">🎉 Thank you! You're entered into the raffle.</p>
-  </div>
-
-  <div class="leaderboard">
-    <h3>🏆 Leaderboard</h3>
-    <ul id="leaderboardList">
-      <li>Loading...</li>
-    </ul>
-  </div>
+  <h1>ApeChain NFT Raffle - Debug Mode</h1>
+  <p id="wallet">Wallet: Not connected</p>
+  <p id="chain">Chain ID: -</p>
+  <p id="status"></p>
+  <button onclick="connectWallet()">Connect Wallet</button>
 
   <script>
     let web3;
     let userAddress;
-    const CONTRACT_ADDRESS = "0xBBB854C6d7faf527B5EE08389e2FB38469c29F63";
-    const GOOGLE_SHEET_API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
     async function connectWallet() {
       if (window.ethereum) {
@@ -99,63 +24,41 @@
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           userAddress = accounts[0];
-          document.getElementById("wallet").innerText = "Wallet: " + userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+          document.getElementById("wallet").innerText = "Wallet: " + userAddress;
 
           const chainId = await web3.eth.getChainId();
-          if (chainId !== 696969) {
-            alert("Please switch to ApeChain (Chain ID: 696969)");
-            return;
+          console.log("Detected chainId:", chainId);
+          document.getElementById("chain").innerText = "Chain ID: " + chainId;
+
+          if (parseInt(chainId) !== 696969) {
+            document.getElementById("status").innerText = "⚠️ Not on ApeChain. Trying to add it...";
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0xAAE4B9', // 696969 in hex
+                  chainName: 'ApeChain',
+                  nativeCurrency: { name: 'APE', symbol: 'APE', decimals: 18 },
+                  rpcUrls: ['https://rpc.apexchain.xyz'],
+                  blockExplorerUrls: ['https://explorer.apexchain.xyz']
+                }]
+              });
+              document.getElementById("status").innerText = "✅ ApeChain added. Please switch to it.";
+            } catch (addError) {
+              document.getElementById("status").innerText = "❌ Failed to add ApeChain.";
+              console.error(addError);
+            }
+          } else {
+            document.getElementById("status").innerText = "✅ You are connected to ApeChain.";
           }
-
-          const abi = [{"constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
-          const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
-          const balance = await contract.methods.balanceOf(userAddress).call();
-
-          document.getElementById("nftCount").innerText = "Your NFTs: " + balance;
-          const tickets = Math.floor(balance / 3);
-          document.getElementById("tickets").innerText = "🎫 Tickets Available: " + tickets;
-
-          if (tickets > 0) {
-            document.getElementById("raffleBtn").style.display = "inline-block";
-          }
-
         } catch (err) {
-          alert("Failed to connect wallet.");
+          alert("Connection failed.");
+          console.error(err);
         }
       } else {
-        alert("MetaMask not detected. Please install MetaMask.");
+        alert("MetaMask not detected.");
       }
     }
-
-    function enterRaffle() {
-      const ticketsText = document.getElementById("tickets").innerText;
-      const tickets = parseInt(ticketsText.split(": ")[1]);
-
-      fetch(GOOGLE_SHEET_API + "?wallet=" + userAddress + "&tickets=" + tickets)
-        .then(res => res.text())
-        .then(() => {
-          document.getElementById("thankYou").style.display = "block";
-          loadLeaderboard();
-        })
-        .catch(err => alert("Error saving entry."));
-    }
-
-    function loadLeaderboard() {
-      fetch(GOOGLE_SHEET_API + "?action=leaderboard")
-        .then(res => res.json())
-        .then(data => {
-          const list = document.getElementById("leaderboardList");
-          list.innerHTML = "";
-          data.forEach((entry, index) => {
-            list.innerHTML += `<li>#${index+1} ${entry.wallet.slice(0,6)}...${entry.wallet.slice(-4)} - 🎫 ${entry.tickets}</li>`;
-          });
-        })
-        .catch(() => {
-          document.getElementById("leaderboardList").innerHTML = "<li>Failed to load leaderboard.</li>";
-        });
-    }
-
-    loadLeaderboard();
   </script>
 </body>
 </html>
