@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ApeChain Raffle – Fixed Chain ID</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApeChain Raffle – Final Fix</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
 </head>
 <body>
-  <h1>ApeChain NFT Raffle (Chain ID Fix)</h1>
+  <h1>ApeChain NFT Raffle (Final RPC Fix)</h1>
   <p id="wallet">Wallet: Not connected</p>
   <p id="chain">Chain ID: -</p>
   <p id="status" style="color:green;font-weight:bold;"></p>
@@ -30,30 +30,30 @@
           console.log("Detected chainId:", chainId);
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
 
-          // Correct comparison
-          if (parseInt(chainId) !== 696969) {
-            document.getElementById("status").innerText = "Not on ApeChain. Requesting to switch...";
+          // Correct comparison with your real chain ID: 33139
+          if (parseInt(chainId) !== 33139) {
+            document.getElementById("status").innerText = "⚠️ You're not on ApeChain (33139). Requesting switch...";
             try {
               await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
                 params: [{
-                  chainId: '0xAAE4B9',
-                  chainName: 'ApeChain',
+                  chainId: '0x8163', // 33139 in hex
+                  chainName: 'Ape Chain',
                   nativeCurrency: { name: 'APE', symbol: 'APE', decimals: 18 },
-                  rpcUrls: ['https://rpc.apexchain.xyz'],
-                  blockExplorerUrls: ['https://explorer.apexchain.xyz']
+                  rpcUrls: ['https://rpc.apechain.com/http'],
+                  blockExplorerUrls: ['https://apescan.io']
                 }]
               });
-              document.getElementById("status").innerText = "✅ ApeChain added! Switch to it in MetaMask.";
-            } catch (switchErr) {
-              document.getElementById("status").innerText = "❌ Could not add ApeChain.";
-              console.error(switchErr);
+              document.getElementById("status").innerText = "✅ ApeChain added. Please switch to it.";
+            } catch (addErr) {
+              document.getElementById("status").innerText = "❌ Failed to add ApeChain.";
+              console.error(addErr);
             }
           } else {
-            document.getElementById("status").innerText = "✅ You are on ApeChain.";
+            document.getElementById("status").innerText = "✅ You are on ApeChain!";
           }
         } catch (err) {
-          alert("Failed to connect wallet.");
+          alert("Connection failed.");
           console.error(err);
         }
       } else {
