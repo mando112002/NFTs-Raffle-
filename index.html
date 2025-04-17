@@ -4,50 +4,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain Raffle – Full</title>
+  <title>ApeChain Raffle – Final</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
       background: #f3f4f6;
+      margin: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
-      min-height: 100vh;
     }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      max-width: 500px;
+    header {
       width: 100%;
-      text-align: center;
-      margin-bottom: 2rem;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: flex-end;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .wallet-buttons {
+      display: flex;
+      gap: 1rem;
     }
     button {
       background: #2563eb;
       color: white;
       border: none;
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1.2rem;
       border-radius: 0.5rem;
       font-size: 1rem;
-      margin-top: 1rem;
       cursor: pointer;
     }
     button:hover {
       background: #1d4ed8;
     }
-    .thank-you {
-      margin-top: 1rem;
-      color: green;
-      font-weight: bold;
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
     }
-    .winner {
-      margin-top: 1rem;
-      color: darkgreen;
-      font-size: 1.1rem;
+    .wheel {
+      width: 200px;
+      height: 200px;
+      border: 10px solid #2563eb;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 3s linear infinite;
+      margin: 2rem 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .leaderboard {
       background: white;
@@ -56,6 +68,7 @@
       box-shadow: 0 5px 10px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 500px;
+      margin-top: 2rem;
     }
     .leaderboard h3 {
       text-align: center;
@@ -69,18 +82,33 @@
       padding: 0.5rem 0;
       border-bottom: 1px solid #eee;
     }
+    .winner {
+      margin-top: 1rem;
+      color: darkgreen;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <header>
+    <div class="wallet-buttons">
+      <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+      <button id="disconnectBtn" onclick="disconnectWallet()" style="display:none;">Disconnect</button>
+    </div>
+  </header>
+
+  <div class="container">
     <h1>🎟️ ApeChain NFT Raffle</h1>
     <p id="wallet">Wallet: Not connected</p>
     <p id="chain">Chain ID: -</p>
     <p id="nftCount">Your NFTs: -</p>
     <p id="tickets">🎫 Tickets Available: -</p>
-    <button onclick="connectWallet()">Connect Wallet</button>
+
+    <div class="wheel"></div>
+
+    <h2>🎯 Enter the Raffle</h2>
     <button id="raffleBtn" onclick="enterRaffle()" style="display:none;">Enter the Raffle</button>
-    <p id="thankYou" class="thank-you" style="display:none;">🎉 Thank you! You're entered into the raffle.</p>
+    <p id="thankYou" class="thank-you" style="display:none; color:green;">🎉 You're entered!</p>
   </div>
 
   <div class="leaderboard">
@@ -88,7 +116,7 @@
     <ul id="leaderboardList">
       <li>Loading...</li>
     </ul>
-    <button onclick="pickWinner()">🎰 Pick a Random Winner</button>
+    <button id="pickWinnerBtn" onclick="pickWinner()" style="display:none;">🎰 Pick a Random Winner</button>
     <p id="winnerResult" class="winner"></p>
   </div>
 
@@ -103,6 +131,12 @@
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           userAddress = accounts[0];
           document.getElementById("wallet").innerText = "Wallet: " + userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+          document.getElementById("connectBtn").style.display = "none";
+          document.getElementById("disconnectBtn").style.display = "inline-block";
+
+          if (userAddress.toLowerCase() === "0xc111d69DD4fBf358f3eC90652F773D1af38bc678".toLowerCase()) {
+            document.getElementById("pickWinnerBtn").style.display = "inline-block";
+          }
 
           const chainId = await web3.eth.getChainId();
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
@@ -121,6 +155,7 @@
           if (tickets > 0) {
             document.getElementById("raffleBtn").style.display = "inline-block";
           }
+
         } catch (err) {
           alert("Connection failed.");
           console.error(err);
@@ -130,12 +165,23 @@
       }
     }
 
-    async function enterRaffle() {
-      const nftText = document.getElementById("nftCount").innerText;
-      const ticketsText = document.getElementById("tickets").innerText;
-      const nftCount = parseInt(nftText.split(": ")[1]);
-      const tickets = parseInt(ticketsText.split(": ")[1]);
+    function disconnectWallet() {
+      userAddress = null;
+      document.getElementById("wallet").innerText = "Wallet: Not connected";
+      document.getElementById("chain").innerText = "Chain ID: -";
+      document.getElementById("nftCount").innerText = "Your NFTs: -";
+      document.getElementById("tickets").innerText = "🎫 Tickets Available: -";
+      document.getElementById("connectBtn").style.display = "inline-block";
+      document.getElementById("disconnectBtn").style.display = "none";
+      document.getElementById("raffleBtn").style.display = "none";
+      document.getElementById("thankYou").style.display = "none";
+      document.getElementById("pickWinnerBtn").style.display = "none";
+      document.getElementById("winnerResult").innerText = "";
+    }
 
+    async function enterRaffle() {
+      const nftCount = parseInt(document.getElementById("nftCount").innerText.split(": ")[1]);
+      const tickets = parseInt(document.getElementById("tickets").innerText.split(": ")[1]);
       const response = await fetch("https://script.google.com/macros/s/AKfycbwnJ3dUOn_Tz5O1uxjScqnjy5h0SNWUB5tl9C-zq4kpif_yK-gDAeIyhKpJ72vOktfywg/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
