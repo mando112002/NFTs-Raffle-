@@ -4,15 +4,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ApeChain Raffle – Final Fix</title>
+  <title>ApeChain Raffle – Final Styled</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1.5rem;
+    }
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      background: #2563eb;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+  </style>
 </head>
 <body>
-  <h1>ApeChain NFT Raffle (Final RPC Fix)</h1>
-  <p id="wallet">Wallet: Not connected</p>
-  <p id="chain">Chain ID: -</p>
-  <p id="status" style="color:green;font-weight:bold;"></p>
-  <button onclick="connectWallet()">Connect Wallet</button>
+  <div class="card">
+    <h1>ApeChain NFT Raffle</h1>
+    <p id="wallet">Wallet: Not connected</p>
+    <p id="chain">Chain ID: -</p>
+    <p id="status" style="color:green;"></p>
+    <button onclick="connectWallet()">Connect Wallet</button>
+  </div>
 
   <script>
     let web3;
@@ -27,12 +70,11 @@
           document.getElementById("wallet").innerText = "Wallet: " + userAddress;
 
           const chainId = await web3.eth.getChainId();
-          console.log("Detected chainId:", chainId);
           document.getElementById("chain").innerText = "Chain ID: " + chainId;
+          console.log("Detected chainId:", chainId);
 
-          // Correct comparison with your real chain ID: 33139
-          if (parseInt(chainId) !== 33139) {
-            document.getElementById("status").innerText = "⚠️ You're not on ApeChain (33139). Requesting switch...";
+          if (String(chainId) !== "33139") {
+            document.getElementById("status").innerText = "⚠️ You're not on ApeChain. Requesting to switch...";
             try {
               await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
@@ -46,7 +88,7 @@
               });
               document.getElementById("status").innerText = "✅ ApeChain added. Please switch to it.";
             } catch (addErr) {
-              document.getElementById("status").innerText = "❌ Failed to add ApeChain.";
+              document.getElementById("status").innerText = "❌ Could not add ApeChain.";
               console.error(addErr);
             }
           } else {
