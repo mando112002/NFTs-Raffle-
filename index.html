@@ -197,7 +197,7 @@
     }
 
     async function loadLeaderboard() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbwr5D66vr3Wiw5jZk6zvGT1Gx8jkUr6sGavrmaWX4lYsiwPM10G6N3CeaqZhjv2d0fwyg/exec");
+      const res = await fetch("https://script.google.com/macros/s/AKfycbzhLINVup9FDMmeVZaenFusNV6kDmExszNfxq55tvGv2u9py-1ecpjkEx-3WsMQ9Jnh-g/exec");
       const data = await res.json();
       const list = document.getElementById("leaderboardList");
       list.innerHTML = "";
@@ -207,7 +207,7 @@
     }
 
     async function pickWinner() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbwr5D66vr3Wiw5jZk6zvGT1Gx8jkUr6sGavrmaWX4lYsiwPM10G6N3CeaqZhjv2d0fwyg/exec");
+      const res = await fetch("https://script.google.com/macros/s/AKfycbzhLINVup9FDMmeVZaenFusNV6kDmExszNfxq55tvGv2u9py-1ecpjkEx-3WsMQ9Jnh-g/exec");
       const data = await res.json();
       if (data.length > 0) {
         const winner = data[Math.floor(Math.random() * data.length)];
