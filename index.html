@@ -154,7 +154,7 @@
 
           if (tickets > 0) {
       console.log("📡 Sending data to Google Sheet...");
-  fetch("https://script.google.com/macros/s/AKfycbwnJ3dUOn_Tz5O1uxjScqnjy5h0SNWUB5tl9C-zq4kpif_yK-gDAeIyhKpJ72vOktfywg/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbzp83uEHw4xqvkZPlqGwjzcuM2E_Vh-Ig0TfWSayI7PklCPbxJ_IVb8G35YJ32pzYQzdg/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet: userAddress, nftCount: balance, tickets: tickets })
@@ -197,7 +197,7 @@
       const nftCount = parseInt(document.getElementById("nftCount").innerText.split(": ")[1]);
       const tickets = parseInt(document.getElementById("tickets").innerText.split(": ")[1]);
       const response = await console.log("📡 Sending data to Google Sheet...");
-  fetch("https://script.google.com/macros/s/AKfycbwnJ3dUOn_Tz5O1uxjScqnjy5h0SNWUB5tl9C-zq4kpif_yK-gDAeIyhKpJ72vOktfywg/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbzp83uEHw4xqvkZPlqGwjzcuM2E_Vh-Ig0TfWSayI7PklCPbxJ_IVb8G35YJ32pzYQzdg/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet: userAddress, nftCount: nftCount, tickets: tickets })
